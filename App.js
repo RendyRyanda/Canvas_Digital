@@ -1,9 +1,13 @@
-import Category from "./src/screens/Category";
-// atau
-import Profile from "./src/screens/Profile";
-// atau
-import Detail from "./src/screens/Detail";
+import React from "react";
+
+import { NavigationContainer } from "@react-navigation/native";
+
+import Router from "./src/navigation/Router";
 
 export default function App() {
-  return <Profile />; // ganti sesuai screen
+  return (
+    <NavigationContainer>
+      <Router />
+    </NavigationContainer>
+  );
 }

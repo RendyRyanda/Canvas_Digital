@@ -1,12 +1,17 @@
 import React from "react";
+
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   ImageBackground,
+  TouchableOpacity,
 } from "react-native";
+
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import { useNavigation } from "@react-navigation/native";
 
 const kategori = [
   {
@@ -39,25 +44,27 @@ const kategori = [
 ];
 
 export default function Category() {
+  const navigation = useNavigation();
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* HEADER */}
       <Text style={styles.title}>Kategori Museum</Text>
 
-      {/* LIST */}
       <FlatList
         data={kategori}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ImageBackground
-            source={{ uri: item.gambar }}
-            style={styles.card}
-            imageStyle={{ borderRadius: 15 }}
-          >
-            <View style={styles.overlay}>
-              <Text style={styles.text}>{item.nama}</Text>
-            </View>
-          </ImageBackground>
+          <TouchableOpacity onPress={() => navigation.navigate("Detail")}>
+            <ImageBackground
+              source={{ uri: item.gambar }}
+              style={styles.card}
+              imageStyle={{ borderRadius: 15 }}
+            >
+              <View style={styles.overlay}>
+                <Text style={styles.text}>{item.nama}</Text>
+              </View>
+            </ImageBackground>
+          </TouchableOpacity>
         )}
       />
     </SafeAreaView>
@@ -68,7 +75,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#f2f4f8", // background lembut
+    backgroundColor: "#f2f4f8",
   },
 
   title: {

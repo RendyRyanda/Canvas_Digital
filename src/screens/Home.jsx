@@ -1,12 +1,25 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput, FlatList } from "react-native";
+
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useNavigation } from "@react-navigation/native";
+
 // IMPORT DATA & COMPONENT
-import museumData from "./src/data/museum";
-import MuseumCard from "./src/components/MuseumCard";
+import museumData from "../data/museum";
+import MuseumCard from "../components/MuseumCard";
 
 export default function Home() {
+  const navigation = useNavigation();
+
   // STATE
   const [search, setSearch] = useState("");
 
@@ -19,22 +32,30 @@ export default function Home() {
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>CanvasDigital</Text>
 
-      {/* GRID */}
+      {/* GRID MENU */}
       <View style={styles.grid}>
         <View style={styles.box}>
           <Text>Provinsi</Text>
         </View>
-        <View style={styles.box}>
+
+        {/* KATEGORI */}
+        <TouchableOpacity
+          style={styles.box}
+          onPress={() => navigation.navigate("Category")}
+        >
           <Text>Kategori Museum</Text>
-        </View>
+        </TouchableOpacity>
+
         <View style={styles.box}>
           <Text>Museum Terpopuler</Text>
         </View>
+
         <View style={styles.box}>
           <Text>Favorit</Text>
         </View>
       </View>
 
+      {/* TITLE */}
       <Text style={styles.sectionTitle}>Museum Terbaru</Text>
 
       {/* SEARCH */}
@@ -45,12 +66,20 @@ export default function Home() {
         onChangeText={setSearch}
       />
 
-      {/* FLATLIST */}
+      {/* LIST MUSEUM */}
       <FlatList
         data={filteredMuseum}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <MuseumCard nama={item.nama} gambar={item.gambar} />
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("Detail", {
+                museum: item,
+              })
+            }
+          >
+            <MuseumCard nama={item.nama} gambar={item.gambar} />
+          </TouchableOpacity>
         )}
       />
     </SafeAreaView>
