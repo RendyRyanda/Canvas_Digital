@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 
 import {
   View,
   Text,
   StyleSheet,
   TextInput,
-  FlatList,
   TouchableOpacity,
+  Animated,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -23,6 +23,16 @@ export default function Home() {
   // STATE
   const [search, setSearch] = useState("");
 
+  // ANIMATED
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  // HEADER HILANG SAAT SCROLL
+  const headerTranslate = scrollY.interpolate({
+    inputRange: [0, 120],
+    outputRange: [0, -250],
+    extrapolate: "clamp",
+  });
+
   // FILTER
   const filteredMuseum = museumData.filter((item) =>
     item.nama.toLowerCase().includes(search.toLowerCase()),
@@ -30,46 +40,77 @@ export default function Home() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>CanvasDigital</Text>
+      {/* HEADER + MENU + SEARCH */}
+      <Animated.View
+        style={[
+          styles.topContainer,
+          {
+            transform: [{ translateY: headerTranslate }],
+            opacity: scrollY.interpolate({
+              inputRange: [0, 100],
+              outputRange: [1, 0],
+              extrapolate: "clamp",
+            }),
+          },
+        ]}
+      >
+        <Text style={styles.header}>CanvasDigital</Text>
 
-      {/* GRID MENU */}
-      <View style={styles.grid}>
-        <View style={styles.box}>
-          <Text>Provinsi</Text>
+        {/* GRID MENU */}
+        <View style={styles.grid}>
+          <View style={styles.box}>
+            <Text>Provinsi</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.box}
+            onPress={() => navigation.navigate("Category")}
+          >
+            <Text>Kategori Museum</Text>
+          </TouchableOpacity>
+
+          <View style={styles.box}>
+            <Text>Museum Terpopuler</Text>
+          </View>
+
+          <View style={styles.box}>
+            <Text>Favorit</Text>
+          </View>
         </View>
 
-        {/* KATEGORI */}
-        <TouchableOpacity
-          style={styles.box}
-          onPress={() => navigation.navigate("Category")}
-        >
-          <Text>Kategori Museum</Text>
-        </TouchableOpacity>
+        {/* TITLE */}
+        <Text style={styles.sectionTitle}>Museum Terbaru</Text>
 
-        <View style={styles.box}>
-          <Text>Museum Terpopuler</Text>
-        </View>
+        {/* SEARCH */}
+        <TextInput
+          placeholder="Cari museum..."
+          style={styles.search}
+          value={search}
+          onChangeText={setSearch}
+        />
+      </Animated.View>
 
-        <View style={styles.box}>
-          <Text>Favorit</Text>
-        </View>
-      </View>
-
-      {/* TITLE */}
-      <Text style={styles.sectionTitle}>Museum Terbaru</Text>
-
-      {/* SEARCH */}
-      <TextInput
-        placeholder="Cari museum..."
-        style={styles.search}
-        value={search}
-        onChangeText={setSearch}
-      />
-
-      {/* LIST MUSEUM */}
-      <FlatList
+      {/* LIST */}
+      <Animated.FlatList
         data={filteredMuseum}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={{
+          paddingTop: 320,
+          paddingBottom: 20,
+        }}
+        onScroll={Animated.event(
+          [
+            {
+              nativeEvent: {
+                contentOffset: { y: scrollY },
+              },
+            },
+          ],
+          {
+            useNativeDriver: true,
+          },
+        )}
+        scrollEventThrottle={16}
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() =>
@@ -90,6 +131,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: "#fff",
+  },
+
+  topContainer: {
+    position: "absolute",
+    top: 16,
+    left: 16,
+    right: 16,
+    zIndex: 1000,
     backgroundColor: "#fff",
   },
 
