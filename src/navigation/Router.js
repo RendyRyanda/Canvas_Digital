@@ -9,6 +9,7 @@ import Home from "../screens/Home";
 import Category from "../screens/Category";
 import Profile from "../screens/Profile";
 import Detail from "../screens/Detail";
+import AddMuseumForm from "../screens/AddMuseumForm";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -55,6 +56,14 @@ export default function Router() {
       />
 
       <Stack.Screen name="Category" component={Category} />
+
+      <Stack.Screen
+        name="AddMuseum"
+        component={AddMuseumForm}
+        options={{
+          headerShown: false,
+        }}
+      />
 
       <Stack.Screen name="Detail" component={Detail} />
     </Stack.Navigator>

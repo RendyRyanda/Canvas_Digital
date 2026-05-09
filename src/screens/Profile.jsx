@@ -1,8 +1,12 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Edit } from "lucide-react-native";
+import { Pressable } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 export default function Profile() {
+  const navigation = useNavigation();
   return (
     <SafeAreaView style={styles.container}>
       {/* HEADER */}
@@ -32,6 +36,18 @@ export default function Profile() {
           <Text style={styles.buttonTextSecondary}>Favorit</Text>
         </TouchableOpacity>
       </View>
+      <Pressable
+        style={({ pressed }) => [
+          styles.floatingButton,
+          {
+            opacity: pressed ? 0.8 : 1,
+            transform: [{ scale: pressed ? 0.95 : 1 }],
+          },
+        ]}
+        onPress={() => navigation.navigate("AddMuseum")}
+      >
+        <Edit color="white" size={22} />
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -108,5 +124,23 @@ const styles = StyleSheet.create({
   buttonTextSecondary: {
     color: "#4A90E2",
     fontWeight: "bold",
+  },
+  floatingButton: {
+    backgroundColor: "#2563eb",
+    padding: 18,
+    position: "absolute",
+    bottom: 24,
+    right: 24,
+    borderRadius: 20,
+
+    shadowColor: "#2563eb",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
 });
