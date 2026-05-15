@@ -1,4 +1,5 @@
 import React from "react";
+
 import {
   View,
   Text,
@@ -6,46 +7,48 @@ import {
   ImageBackground,
   ScrollView,
 } from "react-native";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function Detail() {
+export default function Detail({ route }) {
+  // AMBIL DATA DARI NAVIGATION
+  const { museum } = route.params;
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
         {/* HERO IMAGE */}
         <ImageBackground
           source={{
-            uri: "https://www.museumnasional.or.id/wp-content/uploads/2022/12/bagian-depan-1536x661.jpg",
+            uri: museum.gambar,
           }}
           style={styles.image}
         >
           <View style={styles.overlay}>
-            <Text style={styles.title}>Museum Nasional</Text>
+            <Text style={styles.title}>{museum.nama}</Text>
           </View>
         </ImageBackground>
+
+        {/* INFO BAWAH GAMBAR */}
+        <View style={styles.infoContainer}>
+          <View style={styles.infoBox}>
+            <Text style={styles.infoLabel}>📍 Provinsi</Text>
+
+            <Text style={styles.infoValue}>{museum.provinsi}</Text>
+          </View>
+
+          <View style={styles.infoBox}>
+            <Text style={styles.infoLabel}>🏛️ Kategori</Text>
+
+            <Text style={styles.infoValue}>{museum.kategori}</Text>
+          </View>
+        </View>
 
         {/* DESKRIPSI */}
         <View style={styles.content}>
           <Text style={styles.section}>Deskripsi</Text>
-          <Text style={styles.desc}>
-            Museum Nasional Indonesia merupakan salah satu museum terbesar di
-            Asia Tenggara yang menyimpan berbagai koleksi sejarah, budaya, dan
-            artefak penting dari seluruh Nusantara.
-          </Text>
 
-          {/* INFO CARD */}
-          <View style={styles.card}>
-            <Text style={styles.info}>📍 Alamat</Text>
-            <Text style={styles.value}>
-              Jl. Medan Merdeka Barat No.12, Jakarta
-            </Text>
-
-            <Text style={styles.info}>🕒 Jam Operasional</Text>
-            <Text style={styles.value}>08.00 - 16.00 WIB</Text>
-
-            <Text style={styles.info}>💰 Harga Tiket</Text>
-            <Text style={styles.value}>Rp5.000 - Rp15.000</Text>
-          </View>
+          <Text style={styles.desc}>{museum.deskripsi}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -74,6 +77,32 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 
+  infoContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    marginTop: 15,
+  },
+
+  infoBox: {
+    backgroundColor: "#fff",
+    width: "48%",
+    borderRadius: 15,
+    padding: 15,
+    elevation: 3,
+  },
+
+  infoLabel: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+
+  infoValue: {
+    fontSize: 14,
+    color: "#555",
+  },
+
   content: {
     padding: 15,
   },
@@ -81,33 +110,12 @@ const styles = StyleSheet.create({
   section: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 5,
+    marginBottom: 10,
   },
 
   desc: {
     fontSize: 14,
     color: "#555",
-    marginBottom: 15,
-  },
-
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 15,
-    padding: 15,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-
-  info: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginTop: 10,
-  },
-
-  value: {
-    fontSize: 14,
-    color: "#555",
+    lineHeight: 22,
   },
 });

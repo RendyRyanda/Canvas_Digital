@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 import {
   View,
@@ -7,14 +7,16 @@ import {
   TextInput,
   TouchableOpacity,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useNavigation } from "@react-navigation/native";
 
-// IMPORT DATA & COMPONENT
-import museumData from "../data/museum";
+import axios from "axios";
+
+// COMPONENT
 import MuseumCard from "../components/MuseumCard";
 
 export default function Home() {
@@ -22,6 +24,8 @@ export default function Home() {
 
   // STATE
   const [search, setSearch] = useState("");
+  const [museumData, setMuseumData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // ANIMATED
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -32,6 +36,27 @@ export default function Home() {
     outputRange: [0, -250],
     extrapolate: "clamp",
   });
+
+  // GET API
+  const getMuseum = async () => {
+    try {
+      const response = await axios.get(
+        "https://6a06e0f6c83ba8ad9b3e0dc9.mockapi.io/museum/",
+      );
+
+      setMuseumData(response.data);
+
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
+
+  // LOAD DATA
+  useEffect(() => {
+    getMuseum();
+  }, []);
 
   // FILTER
   const filteredMuseum = museumData.filter((item) =>
@@ -91,38 +116,44 @@ export default function Home() {
       </Animated.View>
 
       {/* LIST */}
-      <Animated.FlatList
-        data={filteredMuseum}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{
-          paddingTop: 320,
-          paddingBottom: 20,
-        }}
-        onScroll={Animated.event(
-          [
-            {
-              nativeEvent: {
-                contentOffset: { y: scrollY },
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2563eb" />
+        </View>
+      ) : (
+        <Animated.FlatList
+          data={filteredMuseum}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{
+            paddingTop: 320,
+            paddingBottom: 20,
+          }}
+          onScroll={Animated.event(
+            [
+              {
+                nativeEvent: {
+                  contentOffset: { y: scrollY },
+                },
               },
+            ],
+            {
+              useNativeDriver: true,
             },
-          ],
-          {
-            useNativeDriver: true,
-          },
-        )}
-        scrollEventThrottle={16}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("Detail", {
-                museum: item,
-              })
-            }
-          >
-            <MuseumCard nama={item.nama} gambar={item.gambar} />
-          </TouchableOpacity>
-        )}
-      />
+          )}
+          scrollEventThrottle={16}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("Detail", {
+                  museum: item,
+                })
+              }
+            >
+              <MuseumCard nama={item.nama} gambar={item.gambar} />
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -176,5 +207,11 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 10,
     marginBottom: 10,
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

@@ -10,6 +10,7 @@ import Category from "../screens/Category";
 import Profile from "../screens/Profile";
 import Detail from "../screens/Detail";
 import AddMuseumForm from "../screens/AddMuseumForm";
+import EditMuseumForm from "../screens/EditMuseumForm";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -66,6 +67,13 @@ export default function Router() {
       />
 
       <Stack.Screen name="Detail" component={Detail} />
+      <Stack.Screen
+        name="EditMuseum"
+        component={EditMuseumForm}
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack.Navigator>
   );
 }

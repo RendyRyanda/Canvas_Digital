@@ -6,14 +6,18 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
   Alert,
 } from "react-native";
 
-import { ArrowLeft } from "lucide-react-native";
+import axios from "axios";
+
 import { useNavigation } from "@react-navigation/native";
 
 export default function AddMuseumForm() {
   const navigation = useNavigation();
+
+  const [loading, setLoading] = useState(false);
 
   const [museumData, setMuseumData] = useState({
     nama: "",
@@ -30,10 +34,32 @@ export default function AddMuseumForm() {
     });
   };
 
-  const handleSubmit = () => {
-    Alert.alert("Berhasil", `Museum ${museumData.nama} berhasil ditambahkan`);
+  // POST API
+  const handleSubmit = async () => {
+    setLoading(true);
 
-    console.log(museumData);
+    try {
+      await axios.post("https://6a06e0f6c83ba8ad9b3e0dc9.mockapi.io/museum/", {
+        nama: museumData.nama,
+        provinsi: museumData.provinsi,
+        kategori: museumData.kategori,
+        deskripsi: museumData.deskripsi,
+        gambar: museumData.gambar,
+        createdAt: new Date(),
+      });
+
+      setLoading(false);
+
+      Alert.alert("Berhasil", `Museum ${museumData.nama} berhasil ditambahkan`);
+
+      navigation.goBack();
+    } catch (error) {
+      console.log(error);
+
+      setLoading(false);
+
+      Alert.alert("Error", "Gagal menambahkan museum");
+    }
   };
 
   return (
@@ -41,7 +67,7 @@ export default function AddMuseumForm() {
       {/* HEADER */}
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()}>
-          <ArrowLeft size={24} color="black" />
+          <Text style={{ fontSize: 24 }}>←</Text>
         </Pressable>
 
         <Text style={styles.title}>Tambah Museum</Text>
@@ -122,6 +148,13 @@ export default function AddMuseumForm() {
           <Text style={styles.buttonText}>Tambah Museum</Text>
         </Pressable>
       </View>
+
+      {/* LOADING */}
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#2563eb" />
+        </View>
+      )}
     </View>
   );
 }
@@ -177,5 +210,16 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+  },
+
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
