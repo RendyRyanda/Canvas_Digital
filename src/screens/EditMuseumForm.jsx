@@ -11,9 +11,9 @@ import {
   Alert,
 } from "react-native";
 
-import axios from "axios";
-
 import { useNavigation } from "@react-navigation/native";
+
+import { supabase } from "../libs/supabase";
 
 export default function EditMuseumForm({ route }) {
   const navigation = useNavigation();
@@ -22,7 +22,7 @@ export default function EditMuseumForm({ route }) {
 
   const [loading, setLoading] = useState(true);
 
-  // DATA AWAL
+  // DATA FORM
   const [museumData, setMuseumData] = useState({
     nama: "",
     provinsi: "",
@@ -31,25 +31,36 @@ export default function EditMuseumForm({ route }) {
     gambar: "",
   });
 
-  // GET DATA BERDASARKAN ID
+  // GET DATA
   useEffect(() => {
     getMuseumDetail();
   }, []);
 
   const getMuseumDetail = async () => {
     try {
-      const response = await axios.get(
-        `https://6a06e0f6c83ba8ad9b3e0dc9.mockapi.io/museum/${museumId}`,
-      );
+      const { data, error } = await supabase
+        .from("blogs")
+        .select("*")
+        .eq("id", museumId)
+        .single();
 
-      // DATA LAMA MASUK KE FORM
-      setMuseumData(response.data);
+      if (error) throw error;
+
+      setMuseumData({
+        nama: data.title,
+        provinsi: data.provinsi,
+        kategori: data.category,
+        deskripsi: data.content,
+        gambar: data.image,
+      });
 
       setLoading(false);
     } catch (error) {
       console.log(error);
 
       setLoading(false);
+
+      Alert.alert("Error", error.message);
     }
   };
 
@@ -66,10 +77,18 @@ export default function EditMuseumForm({ route }) {
     setLoading(true);
 
     try {
-      await axios.put(
-        `https://6a06e0f6c83ba8ad9b3e0dc9.mockapi.io/museum/${museumId}`,
-        museumData,
-      );
+      const { error } = await supabase
+        .from("blogs")
+        .update({
+          title: museumData.nama,
+          provinsi: museumData.provinsi,
+          category: museumData.kategori,
+          content: museumData.deskripsi,
+          image: museumData.gambar,
+        })
+        .eq("id", museumId);
+
+      if (error) throw error;
 
       setLoading(false);
 
@@ -80,6 +99,8 @@ export default function EditMuseumForm({ route }) {
       console.log(error);
 
       setLoading(false);
+
+      Alert.alert("Error", error.message);
     }
   };
 
@@ -100,9 +121,12 @@ export default function EditMuseumForm({ route }) {
           try {
             setLoading(true);
 
-            await axios.delete(
-              `https://6a06e0f6c83ba8ad9b3e0dc9.mockapi.io/museum/${museumId}`,
-            );
+            const { error } = await supabase
+              .from("blogs")
+              .delete()
+              .eq("id", museumId);
+
+            if (error) throw error;
 
             setLoading(false);
 
@@ -113,6 +137,8 @@ export default function EditMuseumForm({ route }) {
             console.log(error);
 
             setLoading(false);
+
+            Alert.alert("Error", error.message);
           }
         },
       },

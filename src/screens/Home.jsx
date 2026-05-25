@@ -14,7 +14,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useNavigation } from "@react-navigation/native";
 
-import axios from "axios";
+// SUPABASE
+import { supabase } from "../libs/supabase";
 
 // COMPONENT
 import MuseumCard from "../components/MuseumCard";
@@ -24,31 +25,56 @@ export default function Home() {
 
   // STATE
   const [search, setSearch] = useState("");
+
   const [museumData, setMuseumData] = useState([]);
+
   const [loading, setLoading] = useState(true);
 
-  // ANIMATED
+  // ANIMATION
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  // HEADER HILANG SAAT SCROLL
+  // HEADER ANIMATION
   const headerTranslate = scrollY.interpolate({
     inputRange: [0, 120],
+
     outputRange: [0, -250],
+
     extrapolate: "clamp",
   });
 
-  // GET API
+  // GET DATA SUPABASE
   const getMuseum = async () => {
     try {
-      const response = await axios.get(
-        "https://6a06e0f6c83ba8ad9b3e0dc9.mockapi.io/museum/",
-      );
+      const { data, error } = await supabase
+        .from("blogs")
+        .select("*")
+        .order("createdAt", {
+          ascending: false,
+        });
 
-      setMuseumData(response.data);
+      if (error) throw error;
+
+      // FORMAT DATA
+      const formattedData = data.map((item) => ({
+        id: item.id.toString(),
+
+        nama: item.title,
+
+        provinsi: item.provinsi,
+
+        kategori: item.category,
+
+        deskripsi: item.Deskripsi || item.content,
+
+        gambar: item.image,
+      }));
+
+      setMuseumData(formattedData);
 
       setLoading(false);
     } catch (error) {
       console.log(error);
+
       setLoading(false);
     }
   };
@@ -58,49 +84,65 @@ export default function Home() {
     getMuseum();
   }, []);
 
-  // FILTER
+  // FILTER SEARCH
   const filteredMuseum = museumData.filter((item) =>
     item.nama.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* HEADER + MENU + SEARCH */}
+      {/* HEADER */}
       <Animated.View
         style={[
           styles.topContainer,
+
           {
-            transform: [{ translateY: headerTranslate }],
+            transform: [
+              {
+                translateY: headerTranslate,
+              },
+            ],
+
             opacity: scrollY.interpolate({
               inputRange: [0, 100],
+
               outputRange: [1, 0],
+
               extrapolate: "clamp",
             }),
           },
         ]}
       >
+        {/* TITLE */}
         <Text style={styles.header}>CanvasDigital</Text>
 
-        {/* GRID MENU */}
+        {/* GRID */}
         <View style={styles.grid}>
+          {/* PROVINSI */}
           <View style={styles.box}>
-            <Text>Provinsi</Text>
+            <Text style={styles.boxText}>Provinsi</Text>
           </View>
 
+          {/* CATEGORY */}
           <TouchableOpacity
             style={styles.box}
             onPress={() => navigation.navigate("Category")}
           >
-            <Text>Kategori Museum</Text>
+            <Text style={styles.boxText}>Kategori Museum</Text>
           </TouchableOpacity>
 
+          {/* POPULER */}
           <View style={styles.box}>
-            <Text>Museum Terpopuler</Text>
+            <Text style={styles.boxText}>Museum Terpopuler</Text>
           </View>
 
-          <View style={styles.box}>
-            <Text>Favorit</Text>
-          </View>
+          {/* FAVORITE */}
+          <TouchableOpacity
+            style={styles.box}
+            onPress={() => navigation.navigate("Favorite")}
+          >
+            <Text style={styles.boxText}>Favorit</Text>
+          </TouchableOpacity>
         </View>
 
         {/* TITLE */}
@@ -115,7 +157,7 @@ export default function Home() {
         />
       </Animated.View>
 
-      {/* LIST */}
+      {/* LOADING */}
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#2563eb" />
@@ -132,7 +174,9 @@ export default function Home() {
             [
               {
                 nativeEvent: {
-                  contentOffset: { y: scrollY },
+                  contentOffset: {
+                    y: scrollY,
+                  },
                 },
               },
             ],
@@ -145,7 +189,19 @@ export default function Home() {
             <TouchableOpacity
               onPress={() =>
                 navigation.navigate("Detail", {
-                  museum: item,
+                  museum: {
+                    id: item.id,
+
+                    nama: item.nama,
+
+                    gambar: item.gambar,
+
+                    kategori: item.kategori,
+
+                    deskripsi: item.deskripsi,
+
+                    provinsi: item.provinsi,
+                  },
                 })
               }
             >
@@ -175,9 +231,10 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
     marginBottom: 16,
+    color: "#111827",
   },
 
   grid: {
@@ -188,25 +245,34 @@ const styles = StyleSheet.create({
 
   box: {
     width: "48%",
-    height: 80,
-    backgroundColor: "#ddd",
+    height: 85,
+    backgroundColor: "#e5e7eb",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
-    borderRadius: 15,
+    marginBottom: 12,
+    borderRadius: 18,
+  },
+
+  boxText: {
+    fontWeight: "600",
+    color: "#111827",
+    textAlign: "center",
   },
 
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
-    marginVertical: 10,
+    marginVertical: 12,
+    color: "#111827",
   },
 
   search: {
     borderWidth: 1,
-    borderRadius: 15,
-    padding: 10,
+    borderColor: "#d1d5db",
+    borderRadius: 16,
+    padding: 14,
     marginBottom: 10,
+    backgroundColor: "#f9fafb",
   },
 
   loadingContainer: {

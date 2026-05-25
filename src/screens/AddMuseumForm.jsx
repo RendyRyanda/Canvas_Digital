@@ -1,22 +1,19 @@
 import React, { useState } from "react";
+
 import {
   View,
   Text,
   TextInput,
-  Pressable,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
   Alert,
+  TouchableOpacity,
 } from "react-native";
 
-import axios from "axios";
+import { supabase } from "../libs/supabase";
 
-import { useNavigation } from "@react-navigation/native";
-
-export default function AddMuseumForm() {
-  const navigation = useNavigation();
-
+export default function AddMuseumForm({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   const [museumData, setMuseumData] = useState({
@@ -27,6 +24,7 @@ export default function AddMuseumForm() {
     gambar: "",
   });
 
+  // HANDLE INPUT
   const handleChange = (key, value) => {
     setMuseumData({
       ...museumData,
@@ -34,23 +32,25 @@ export default function AddMuseumForm() {
     });
   };
 
-  // POST API
+  // INSERT DATA
   const handleSubmit = async () => {
     setLoading(true);
 
     try {
-      await axios.post("https://6a06e0f6c83ba8ad9b3e0dc9.mockapi.io/museum/", {
-        nama: museumData.nama,
+      const { error } = await supabase.from("blogs").insert({
+        title: museumData.nama,
         provinsi: museumData.provinsi,
-        kategori: museumData.kategori,
-        deskripsi: museumData.deskripsi,
-        gambar: museumData.gambar,
+        category: museumData.kategori,
+        Deskripsi: museumData.deskripsi,
+        image: museumData.gambar,
         createdAt: new Date(),
       });
 
+      if (error) throw error;
+
       setLoading(false);
 
-      Alert.alert("Berhasil", `Museum ${museumData.nama} berhasil ditambahkan`);
+      Alert.alert("Berhasil", `${museumData.nama} berhasil ditambahkan`);
 
       navigation.goBack();
     } catch (error) {
@@ -58,28 +58,20 @@ export default function AddMuseumForm() {
 
       setLoading(false);
 
-      Alert.alert("Error", "Gagal menambahkan museum");
+      Alert.alert("Error", error.message);
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()}>
-          <Text style={{ fontSize: 24 }}>←</Text>
-        </Pressable>
-
-        <Text style={styles.title}>Tambah Museum</Text>
-      </View>
-
       {/* FORM */}
       <ScrollView
-        contentContainerStyle={{
-          padding: 20,
-          gap: 15,
-        }}
+        contentContainerStyle={styles.formContainer}
+        showsVerticalScrollIndicator={false}
       >
+        {/* TITLE */}
+        <Text style={styles.pageTitle}>Tambah Museum</Text>
+
         {/* NAMA */}
         <View>
           <Text style={styles.label}>Nama Museum</Text>
@@ -109,7 +101,7 @@ export default function AddMuseumForm() {
           <Text style={styles.label}>Kategori</Text>
 
           <TextInput
-            placeholder="Contoh: Sejarah"
+            placeholder="Masukkan kategori"
             style={styles.input}
             value={museumData.kategori}
             onChangeText={(text) => handleChange("kategori", text)}
@@ -121,7 +113,7 @@ export default function AddMuseumForm() {
           <Text style={styles.label}>URL Gambar</Text>
 
           <TextInput
-            placeholder="Masukkan link gambar"
+            placeholder="Masukkan URL gambar"
             style={styles.input}
             value={museumData.gambar}
             onChangeText={(text) => handleChange("gambar", text)}
@@ -133,9 +125,9 @@ export default function AddMuseumForm() {
           <Text style={styles.label}>Deskripsi</Text>
 
           <TextInput
+            multiline
             placeholder="Masukkan deskripsi museum"
             style={[styles.input, styles.textArea]}
-            multiline
             value={museumData.deskripsi}
             onChangeText={(text) => handleChange("deskripsi", text)}
           />
@@ -144,9 +136,9 @@ export default function AddMuseumForm() {
 
       {/* BUTTON */}
       <View style={styles.bottomBar}>
-        <Pressable style={styles.button} onPress={handleSubmit}>
+        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
           <Text style={styles.buttonText}>Tambah Museum</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       {/* LOADING */}
@@ -163,53 +155,60 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    paddingTop: 10,
   },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 15,
-    padding: 20,
-  },
-
-  title: {
-    fontSize: 20,
+  pageTitle: {
+    fontSize: 30,
     fontWeight: "bold",
+    marginBottom: 25,
+    color: "#111827",
+  },
+
+  formContainer: {
+    padding: 20,
+    paddingBottom: 120,
+    gap: 18,
   },
 
   label: {
     fontSize: 16,
+    fontWeight: "700",
     marginBottom: 8,
-    fontWeight: "600",
+    color: "#111827",
   },
 
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 12,
-    padding: 12,
+    borderColor: "#d1d5db",
+    borderRadius: 16,
+    padding: 16,
+    backgroundColor: "#f9fafb",
+    fontSize: 15,
   },
 
   textArea: {
-    height: 120,
+    height: 140,
     textAlignVertical: "top",
   },
 
   bottomBar: {
     padding: 20,
+    backgroundColor: "#fff",
   },
 
   button: {
     backgroundColor: "#2563eb",
-    padding: 15,
-    borderRadius: 12,
+    padding: 18,
+    borderRadius: 18,
     alignItems: "center",
+    elevation: 3,
   },
 
   buttonText: {
-    color: "white",
+    color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 17,
   },
 
   loadingOverlay: {
