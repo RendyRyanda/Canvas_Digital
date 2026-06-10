@@ -11,6 +11,8 @@ import {
   Alert,
 } from "react-native";
 
+import { Picker } from "@react-native-picker/picker";
+
 import { useNavigation } from "@react-navigation/native";
 
 import { supabase } from "../libs/supabase";
@@ -22,7 +24,6 @@ export default function EditMuseumForm({ route }) {
 
   const [loading, setLoading] = useState(true);
 
-  // DATA FORM
   const [museumData, setMuseumData] = useState({
     nama: "",
     provinsi: "",
@@ -47,11 +48,11 @@ export default function EditMuseumForm({ route }) {
       if (error) throw error;
 
       setMuseumData({
-        nama: data.title,
-        provinsi: data.provinsi,
-        kategori: data.category,
-        deskripsi: data.content,
-        gambar: data.image,
+        nama: data.title || "",
+        provinsi: data.provinsi || "",
+        kategori: data.category || "",
+        deskripsi: data.content || "",
+        gambar: data.image || "",
       });
 
       setLoading(false);
@@ -64,7 +65,6 @@ export default function EditMuseumForm({ route }) {
     }
   };
 
-  // HANDLE INPUT
   const handleChange = (key, value) => {
     setMuseumData({
       ...museumData,
@@ -72,11 +72,23 @@ export default function EditMuseumForm({ route }) {
     });
   };
 
-  // UPDATE DATA
+  // UPDATE
   const handleUpdate = async () => {
-    setLoading(true);
+    if (
+      !museumData.nama ||
+      !museumData.provinsi ||
+      !museumData.kategori ||
+      !museumData.deskripsi ||
+      !museumData.gambar
+    ) {
+      Alert.alert("Peringatan", "Semua field wajib diisi");
+
+      return;
+    }
 
     try {
+      setLoading(true);
+
       const { error } = await supabase
         .from("blogs")
         .update({
@@ -92,7 +104,7 @@ export default function EditMuseumForm({ route }) {
 
       setLoading(false);
 
-      Alert.alert("Berhasil", "Data museum berhasil diupdate");
+      Alert.alert("Berhasil", "Museum berhasil diperbarui");
 
       navigation.goBack();
     } catch (error) {
@@ -104,17 +116,15 @@ export default function EditMuseumForm({ route }) {
     }
   };
 
-  // DELETE DATA
+  // DELETE
   const handleDelete = async () => {
-    Alert.alert("Hapus Museum", "Apakah yakin ingin menghapus museum ini?", [
+    Alert.alert("Hapus Museum", "Yakin ingin menghapus museum ini?", [
       {
         text: "Batal",
         style: "cancel",
       },
-
       {
         text: "Hapus",
-
         style: "destructive",
 
         onPress: async () => {
@@ -145,88 +155,116 @@ export default function EditMuseumForm({ route }) {
     ]);
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#2563eb" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Edit Museum</Text>
+      <ScrollView
+        contentContainerStyle={styles.formContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Edit Museum</Text>
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2563eb" />
+        {/* NAMA */}
+        <View>
+          <Text style={styles.label}>Nama Museum</Text>
+
+          <TextInput
+            style={styles.input}
+            value={museumData.nama}
+            onChangeText={(text) => handleChange("nama", text)}
+          />
         </View>
-      ) : (
-        <ScrollView
-          contentContainerStyle={{
-            padding: 20,
-            gap: 15,
-          }}
-        >
-          {/* NAMA */}
-          <View>
-            <Text style={styles.label}>Nama Museum</Text>
 
-            <TextInput
-              style={styles.input}
-              value={museumData.nama}
-              onChangeText={(text) => handleChange("nama", text)}
-            />
+        {/* PROVINSI */}
+        <View>
+          <Text style={styles.label}>Provinsi</Text>
+
+          <TextInput
+            style={styles.input}
+            value={museumData.provinsi}
+            onChangeText={(text) => handleChange("provinsi", text)}
+          />
+        </View>
+
+        {/* KATEGORI */}
+        <View>
+          <Text style={styles.label}>Kategori Museum</Text>
+
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={museumData.kategori}
+              onValueChange={(value) => handleChange("kategori", value)}
+            >
+              <Picker.Item label="Pilih Kategori Museum" value="" />
+
+              <Picker.Item
+                label="Museum Transportasi & Otomotif"
+                value="Museum Transportasi & Otomotif"
+              />
+
+              <Picker.Item
+                label="Museum Sejarah & Peradaban"
+                value="Museum Sejarah & Peradaban"
+              />
+
+              <Picker.Item
+                label="Museum Fosil & Prasejarah"
+                value="Museum Fosil & Prasejarah"
+              />
+
+              <Picker.Item
+                label="Museum Seni & Budaya"
+                value="Museum Seni & Budaya"
+              />
+
+              <Picker.Item
+                label="Museum Sains & Teknologi"
+                value="Museum Sains & Teknologi"
+              />
+            </Picker>
           </View>
+        </View>
 
-          {/* PROVINSI */}
-          <View>
-            <Text style={styles.label}>Provinsi</Text>
+        {/* GAMBAR */}
+        <View>
+          <Text style={styles.label}>URL Gambar</Text>
 
-            <TextInput
-              style={styles.input}
-              value={museumData.provinsi}
-              onChangeText={(text) => handleChange("provinsi", text)}
-            />
-          </View>
+          <TextInput
+            style={styles.input}
+            value={museumData.gambar}
+            onChangeText={(text) => handleChange("gambar", text)}
+          />
+        </View>
 
-          {/* KATEGORI */}
-          <View>
-            <Text style={styles.label}>Kategori</Text>
+        {/* DESKRIPSI */}
+        <View>
+          <Text style={styles.label}>Deskripsi</Text>
 
-            <TextInput
-              style={styles.input}
-              value={museumData.kategori}
-              onChangeText={(text) => handleChange("kategori", text)}
-            />
-          </View>
+          <TextInput
+            multiline
+            style={[styles.input, styles.textArea]}
+            value={museumData.deskripsi}
+            onChangeText={(text) => handleChange("deskripsi", text)}
+          />
+        </View>
 
-          {/* GAMBAR */}
-          <View>
-            <Text style={styles.label}>URL Gambar</Text>
+        {/* UPDATE */}
+        <TouchableOpacity style={styles.button} onPress={handleUpdate}>
+          <Text style={styles.buttonText}>Update Museum</Text>
+        </TouchableOpacity>
 
-            <TextInput
-              style={styles.input}
-              value={museumData.gambar}
-              onChangeText={(text) => handleChange("gambar", text)}
-            />
-          </View>
-
-          {/* DESKRIPSI */}
-          <View>
-            <Text style={styles.label}>Deskripsi</Text>
-
-            <TextInput
-              multiline
-              style={[styles.input, styles.textArea]}
-              value={museumData.deskripsi}
-              onChangeText={(text) => handleChange("deskripsi", text)}
-            />
-          </View>
-
-          {/* BUTTON UPDATE */}
-          <TouchableOpacity style={styles.button} onPress={handleUpdate}>
-            <Text style={styles.buttonText}>Update Museum</Text>
-          </TouchableOpacity>
-
-          {/* BUTTON DELETE */}
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-            <Text style={styles.deleteButtonText}>Hapus Museum</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      )}
+        {/* DELETE */}
+        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+          <Text style={styles.deleteButtonText}>Hapus Museum</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </View>
   );
 }
@@ -237,10 +275,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
 
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
+  formContainer: {
     padding: 20,
+    paddingBottom: 40,
+  },
+
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 25,
+    color: "#111827",
   },
 
   loadingContainer: {
@@ -253,45 +297,55 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 8,
+    marginTop: 10,
   },
 
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 12,
-    padding: 12,
+    borderColor: "#d1d5db",
+    borderRadius: 16,
+    padding: 14,
+    backgroundColor: "#f9fafb",
+  },
+
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 16,
+    backgroundColor: "#f9fafb",
+    overflow: "hidden",
   },
 
   textArea: {
-    height: 120,
+    height: 130,
     textAlignVertical: "top",
   },
 
   button: {
     backgroundColor: "#2563eb",
-    padding: 15,
-    borderRadius: 12,
+    padding: 18,
+    borderRadius: 16,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 25,
   },
 
   buttonText: {
-    color: "white",
-    fontWeight: "bold",
+    color: "#fff",
     fontSize: 16,
+    fontWeight: "bold",
   },
 
   deleteButton: {
-    backgroundColor: "red",
-    padding: 15,
-    borderRadius: 12,
+    backgroundColor: "#dc2626",
+    padding: 18,
+    borderRadius: 16,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 12,
   },
 
   deleteButtonText: {
-    color: "white",
-    fontWeight: "bold",
+    color: "#fff",
     fontSize: 16,
+    fontWeight: "bold",
   },
 });

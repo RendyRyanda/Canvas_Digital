@@ -11,6 +11,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 
+import { Picker } from "@react-native-picker/picker";
+
 import { supabase } from "../libs/supabase";
 
 export default function AddMuseumForm({ navigation }) {
@@ -34,6 +36,17 @@ export default function AddMuseumForm({ navigation }) {
 
   // INSERT DATA
   const handleSubmit = async () => {
+    if (
+      !museumData.nama ||
+      !museumData.provinsi ||
+      !museumData.kategori ||
+      !museumData.deskripsi ||
+      !museumData.gambar
+    ) {
+      Alert.alert("Peringatan", "Semua field wajib diisi");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -41,7 +54,7 @@ export default function AddMuseumForm({ navigation }) {
         title: museumData.nama,
         provinsi: museumData.provinsi,
         category: museumData.kategori,
-        Deskripsi: museumData.deskripsi,
+        content: museumData.deskripsi,
         image: museumData.gambar,
         createdAt: new Date(),
       });
@@ -64,7 +77,6 @@ export default function AddMuseumForm({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* FORM */}
       <ScrollView
         contentContainerStyle={styles.formContainer}
         showsVerticalScrollIndicator={false}
@@ -98,17 +110,44 @@ export default function AddMuseumForm({ navigation }) {
 
         {/* KATEGORI */}
         <View>
-          <Text style={styles.label}>Kategori</Text>
+          <Text style={styles.label}>Kategori Museum</Text>
 
-          <TextInput
-            placeholder="Masukkan kategori"
-            style={styles.input}
-            value={museumData.kategori}
-            onChangeText={(text) => handleChange("kategori", text)}
-          />
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={museumData.kategori}
+              onValueChange={(value) => handleChange("kategori", value)}
+            >
+              <Picker.Item label="Pilih Kategori Museum" value="" />
+
+              <Picker.Item
+                label="Museum Transportasi & Otomotif"
+                value="Museum Transportasi & Otomotif"
+              />
+
+              <Picker.Item
+                label="Museum Sejarah & Peradaban"
+                value="Museum Sejarah & Peradaban"
+              />
+
+              <Picker.Item
+                label="Museum Fosil & Prasejarah"
+                value="Museum Fosil & Prasejarah"
+              />
+
+              <Picker.Item
+                label="Museum Seni & Budaya"
+                value="Museum Seni & Budaya"
+              />
+
+              <Picker.Item
+                label="Museum Sains & Teknologi"
+                value="Museum Sains & Teknologi"
+              />
+            </Picker>
+          </View>
         </View>
 
-        {/* GAMBAR */}
+        {/* URL GAMBAR */}
         <View>
           <Text style={styles.label}>URL Gambar</Text>
 
@@ -185,6 +224,14 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: "#f9fafb",
     fontSize: 15,
+  },
+
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 16,
+    backgroundColor: "#f9fafb",
+    overflow: "hidden",
   },
 
   textArea: {

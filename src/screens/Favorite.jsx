@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 
 import {
   View,
@@ -12,7 +12,7 @@ import {
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 import { supabase } from "../libs/supabase";
 
@@ -26,11 +26,17 @@ export default function Favorite() {
   // GET FAVORITES
   const getFavorites = async () => {
     try {
+      setLoading(true);
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) return;
+      if (!user) {
+        setFavorites([]);
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from("favorites")
@@ -42,89 +48,103 @@ export default function Favorite() {
 
       if (error) throw error;
 
-      setFavorites(data);
+      console.log("FAVORITES:", data);
+
+      setFavorites(data || []);
 
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      console.log("FAVORITE ERROR:", error);
+
+      setFavorites([]);
 
       setLoading(false);
     }
   };
 
+  // LOAD PERTAMA
   useEffect(() => {
     getFavorites();
   }, []);
+
+  // REFRESH SAAT SCREEN DIBUKA
+  useFocusEffect(
+    useCallback(() => {
+      getFavorites();
+    }, []),
+  );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#2563eb" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Museum Favorit</Text>
 
-      {loading ? (
-        <ActivityIndicator
-          size="large"
-          color="#2563eb"
-          style={{ marginTop: 30 }}
-        />
-      ) : (
-        <FlatList
-          data={favorites}
-          keyExtractor={(item) => item.id.toString()}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() =>
-                navigation.navigate("Detail", {
-                  museum: {
-                    id: item.museum_id,
+      <FlatList
+        data={favorites}
+        keyExtractor={(item) => item.id.toString()}
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() =>
+              navigation.navigate("Detail", {
+                museum: {
+                  id: item.museum_id,
 
-                    nama: item.title,
+                  nama: item.title,
 
-                    gambar: item.image,
+                  gambar: item.image,
 
-                    kategori: item.category,
+                  kategori: item.category,
 
-                    provinsi: item.provinsi,
+                  provinsi: item.provinsi,
 
-                    content: item.content,
-                  },
-                })
-              }
-            >
-              {/* IMAGE */}
-              <Image
-                source={{
-                  uri: item.image,
-                }}
-                style={styles.image}
-              />
+                  content: item.content,
+                },
+              })
+            }
+          >
+            {/* IMAGE */}
+            <Image
+              source={{
+                uri: item.image,
+              }}
+              style={styles.image}
+            />
 
-              {/* CONTENT */}
-              <View style={styles.content}>
-                {/* TITLE */}
-                <Text style={styles.name}>{item.title}</Text>
+            {/* CONTENT */}
+            <View style={styles.content}>
+              <Text style={styles.name}>{item.title}</Text>
 
-                {/* CATEGORY */}
-                <Text style={styles.category}>🏛️ {item.category}</Text>
+              <Text style={styles.category}>🏛️ {item.category}</Text>
 
-                {/* PROVINSI */}
-                <Text style={styles.provinsi}>📍 {item.provinsi}</Text>
+              <Text style={styles.provinsi}>📍 {item.provinsi}</Text>
 
-                {/* DESKRIPSI */}
-                <Text style={styles.description} numberOfLines={3}>
-                  {item.content}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )}
-          ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>Belum ada museum favorit</Text>
+              <Text style={styles.description} numberOfLines={3}>
+                {item.content}
+              </Text>
             </View>
-          )}
-        />
-      )}
+          </TouchableOpacity>
+        )}
+        ListEmptyComponent={() => (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>❤️</Text>
+
+            <Text style={styles.emptyTitle}>Belum Ada Favorit</Text>
+
+            <Text style={styles.emptyText}>
+              Tambahkan museum ke favorit terlebih dahulu
+            </Text>
+          </View>
+        )}
+      />
     </SafeAreaView>
   );
 }
@@ -134,6 +154,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f8fafc",
     padding: 16,
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   title: {
@@ -188,12 +214,24 @@ const styles = StyleSheet.create({
   },
 
   emptyContainer: {
-    marginTop: 100,
+    marginTop: 120,
     alignItems: "center",
   },
 
+  emptyIcon: {
+    fontSize: 50,
+    marginBottom: 10,
+  },
+
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#111827",
+  },
+
   emptyText: {
-    fontSize: 16,
+    marginTop: 8,
     color: "#6b7280",
+    textAlign: "center",
   },
 });

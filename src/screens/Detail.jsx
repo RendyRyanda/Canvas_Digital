@@ -16,12 +16,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { supabase } from "../libs/supabase";
 
-export default function Detail({ route }) {
+export default function Detail({ route, navigation }) {
   const { museum } = route.params;
 
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // FALLBACK DATA
   const museumTitle = museum.title || museum.nama;
 
   const museumImage = museum.image || museum.gambar;
@@ -40,8 +39,10 @@ export default function Detail({ route }) {
   const checkFavorite = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const user = session?.user;
 
       if (!user) return;
 
@@ -53,11 +54,9 @@ export default function Detail({ route }) {
 
       if (error) throw error;
 
-      if (data.length > 0) {
-        setIsFavorite(true);
-      }
+      setIsFavorite(data && data.length > 0);
     } catch (error) {
-      console.log(error);
+      console.log("CHECK FAVORITE ERROR:", error);
     }
   };
 
@@ -65,16 +64,20 @@ export default function Detail({ route }) {
   const handleFavorite = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const user = session?.user;
+
+      console.log("USER SESSION:", user);
 
       if (!user) {
-        Alert.alert("Login dulu", "Silakan login terlebih dahulu");
+        Alert.alert("Login Diperlukan", "Silakan login terlebih dahulu");
 
         return;
       }
 
-      // DELETE FAVORITE
+      // HAPUS FAVORIT
       if (isFavorite) {
         const { error } = await supabase
           .from("favorites")
@@ -88,7 +91,6 @@ export default function Detail({ route }) {
 
         Alert.alert("Berhasil", "Museum dihapus dari favorit");
       } else {
-        // INSERT FAVORITE
         const { error } = await supabase.from("favorites").insert({
           user_id: user.id,
 
@@ -112,7 +114,7 @@ export default function Detail({ route }) {
         Alert.alert("Berhasil", "Museum ditambahkan ke favorit");
       }
     } catch (error) {
-      console.log(error);
+      console.log("FAVORITE ERROR:", error);
 
       Alert.alert("Error", error.message);
     }
@@ -121,7 +123,6 @@ export default function Detail({ route }) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        {/* HERO IMAGE */}
         <ImageBackground
           source={{
             uri: museumImage,
@@ -132,19 +133,32 @@ export default function Detail({ route }) {
             <View style={styles.topRow}>
               <Text style={styles.title}>{museumTitle}</Text>
 
-              {/* FAVORITE BUTTON */}
-              <TouchableOpacity onPress={handleFavorite}>
-                <Ionicons
-                  name={isFavorite ? "heart" : "heart-outline"}
-                  size={30}
-                  color={isFavorite ? "red" : "white"}
-                />
-              </TouchableOpacity>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 15,
+                }}
+              >
+                {/* FAVORITE LIST */}
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("Favorite")}
+                >
+                  <Ionicons name="bookmarks" size={28} color="white" />
+                </TouchableOpacity>
+
+                {/* HEART */}
+                <TouchableOpacity onPress={handleFavorite}>
+                  <Ionicons
+                    name={isFavorite ? "heart" : "heart-outline"}
+                    size={30}
+                    color={isFavorite ? "red" : "white"}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </ImageBackground>
 
-        {/* INFO */}
         <View style={styles.infoContainer}>
           <View style={styles.infoBox}>
             <Text style={styles.infoLabel}>📍 Provinsi</Text>
@@ -159,7 +173,6 @@ export default function Detail({ route }) {
           </View>
         </View>
 
-        {/* DESKRIPSI */}
         <View style={styles.content}>
           <Text style={styles.section}>Deskripsi</Text>
 
@@ -196,7 +209,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 24,
     fontWeight: "bold",
-    width: "85%",
+    width: "70%",
   },
 
   infoContainer: {
